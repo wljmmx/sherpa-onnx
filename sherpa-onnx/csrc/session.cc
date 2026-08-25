@@ -452,6 +452,24 @@ Ort::SessionOptions GetSessionOptionsImpl(
 #endif
       break;
     }
+    case Provider::kOpenVINO: {
+      // OpenVINOExecutionProvider is available when sherpa-onnx is built
+      // against an onnxruntime that ships the OpenVINO execution provider,
+      // e.g. onnxruntime-openvino (https://pypi.org/project/onnxruntime-openvino).
+      // We only append the provider if it is present so that the CPU fallback
+      // works when the EP is missing.
+      if (std::find(available_providers.begin(), available_providers.end(),
+                    "OpenVINOExecutionProvider") != available_providers.end()) {
+        sess_opts.AppendExecutionProvider("OpenVINO");
+        SHERPA_ONNX_LOGE("Use OpenVINO Execution Provider");
+      } else {
+        SHERPA_ONNX_LOGE(
+            "OpenVINOExecutionProvider is not available. "
+            "Available providers: %s. Fallback to cpu!",
+            os.str().c_str());
+      }
+      break;
+    }
   }
   return sess_opts;
 }
