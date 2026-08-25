@@ -460,7 +460,10 @@ Ort::SessionOptions GetSessionOptionsImpl(
       // works when the EP is missing.
       if (std::find(available_providers.begin(), available_providers.end(),
                     "OpenVINOExecutionProvider") != available_providers.end()) {
-        sess_opts.AppendExecutionProvider("OpenVINO");
+        // Use the OpenVINO-specific API: the generic
+        // AppendExecutionProvider(name) overload only supports
+        // QNN/SNPE/XNNPACK.
+        sess_opts.AppendExecutionProvider_OpenVINO_V2();
         SHERPA_ONNX_LOGE("Use OpenVINO Execution Provider");
       } else {
         SHERPA_ONNX_LOGE(
