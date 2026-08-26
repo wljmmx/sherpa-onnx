@@ -1,16 +1,10 @@
 name: docker-image-openvino-linux-x64
 
 on:
+  # 仅手动触发，或在打 v1.13.6 tag 时触发。
+  # 不监听 push：仓库 fork 自 sherpa-onnx，push 会连带触发上游全部测试 workflow，
+  # 挤占免费 runner 并发导致排队长达数小时。
   push:
-    branches:
-      - master
-    paths:
-      - '.github/scripts/openvino/Dockerfile'
-      - '.github/workflows/docker-image-openvino-linux-x64.yaml'
-      - 'sherpa-onnx/csrc/provider.h'
-      - 'sherpa-onnx/csrc/provider.cc'
-      - 'sherpa-onnx/csrc/provider-config.cc'
-      - 'sherpa-onnx/csrc/session.cc'
     tags:
       - 'v1.13.6'
   workflow_dispatch:
