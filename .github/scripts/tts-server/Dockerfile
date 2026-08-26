@@ -22,7 +22,7 @@ RUN pip install --upgrade pip && \
         "uvicorn[standard]" \
         pydantic
 
-COPY tts_server.py /opt/tts-server/tts_server.py
+COPY .github/scripts/tts-server/tts_server.py /opt/tts-server/tts_server.py
 WORKDIR /opt/tts-server
 
 # Sanity check that the bindings and web framework import cleanly.
