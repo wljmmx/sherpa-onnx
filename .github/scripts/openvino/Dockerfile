@@ -73,18 +73,23 @@ RUN mkdir -p /opt/onnxruntime/lib \
     && rm -rf /opt/orv /tmp/orv
 
 # ---- build sherpa-onnx against the OpenVINO-enabled onnxruntime ----
-COPY . /opt/sherpa-onnx-src
-WORKDIR /opt/sherpa-onnx-src
+COPY . /src
+WORKDIR /src
 
 ENV SHERPA_ONNXRUNTIME_LIB_DIR=/opt/onnxruntime/lib
 ENV SHERPA_ONNXRUNTIME_INCLUDE_DIR=/opt/onnxruntime/include
 
+# SHERPA_ONNX_ENABLE_BINARY + SHERPA_ONNX_ENABLE_WEBSOCKET=ON ensure the
+# sherpa-onnx-*-websocket-server binaries are built/installed; these are what
+# the compose stack uses for the ASR voice service.
 RUN mkdir -p build && cd build \
     && cmake \
        -DCMAKE_BUILD_TYPE=Release \
-       -DCMAKE_INSTALL_PREFIX=/opt/sherpa-onnx-src/build/install \
+       -DCMAKE_INSTALL_PREFIX=/src/build/install \
        -DBUILD_SHARED_LIBS=ON \
+       -DSHERPA_ONNX_ENABLE_BINARY=ON \
        -DSHERPA_ONNX_ENABLE_TTS=ON \
+       -DSHERPA_ONNX_ENABLE_WEBSOCKET=ON \
        -DSHERPA_ONNX_ENABLE_PORTAUDIO=OFF \
        -DSHERPA_ONNX_ENABLE_TESTS=OFF \
        -DSHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE=ON \
@@ -92,12 +97,17 @@ RUN mkdir -p build && cd build \
     && make -j"$(nproc)" install \
     && rm -rf build/_deps
 
-# Smoke test: the built sherpa libs must resolve libonnxruntime and the
-# OpenVINO provider library must have been staged for the runtime image.
+# Smoke test: verify the binaries the compose stack needs are present, that
+# the libs resolve libonnxruntime, and that the OpenVINO provider/runtime
+# libs have been staged for the runtime image.
 RUN set -eux; \
-    ls /opt/sherpa-onnx-src/build/install/bin | head -20; \
+    ls /src/build/install/bin | head -40; \
+    echo "--- required binaries present? ---"; \
+    for b in sherpa-onnx-offline-tts sherpa-onnx-offline-websocket-server sherpa-onnx-online-websocket-server sherpa-onnx; do \
+      test -x /src/build/install/bin/$b && echo "OK $b" || echo "MISSING $b"; \
+    done; \
     echo "--- linked onnxruntime ---"; \
-    ldd /opt/sherpa-onnx-src/build/install/lib/*.so* 2>/dev/null | grep -Eo "libonnxruntime\.so\.[0-9.]+" | sort -u; \
+    ldd /src/build/install/lib/*.so* 2>/dev/null | grep -Eo "libonnxruntime\.so\.[0-9.]+" | sort -u; \
     echo "--- openvino runtime ---"; \
     ls /opt/openvino-runtime/; \
     test -f /opt/openvino-runtime/libonnxruntime.so.1; \
@@ -118,8 +128,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # sherpa-onnx binaries and its own shared libraries
-COPY --from=builder /opt/sherpa-onnx-src/build/install/bin /opt/sherpa/bin
-COPY --from=builder /opt/sherpa-onnx-src/build/install/lib /opt/sherpa/lib
+COPY --from=builder /src/build/install/bin /opt/sherpa/bin
+COPY --from=builder /src/build/install/lib /opt/sherpa/lib
+
+# TTS command alias: sherpa-onnx 1.13.6 installs `sherpa-onnx-offline-tts`
+# (there is no binary literally named `sherpa-onnx-tts`). Provide the short
+# alias so the compose `voice-tts-*` service can call `sherpa-onnx-tts`.
+RUN set -eux \
+    && ln -sf sherpa-onnx-offline-tts /opt/sherpa/bin/sherpa-onnx-tts \
+    && ln -sf sherpa-onnx-offline-tts /opt/sherpa/bin/sherpa-onnx-vits
 
 # OpenVINO runtime libraries (no compiling, no network access at runtime)
 COPY --from=builder /opt/openvino-runtime /opt/sherpa/openvino
