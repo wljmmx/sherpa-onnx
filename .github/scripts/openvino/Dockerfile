@@ -67,6 +67,11 @@ RUN mkdir -p /opt/onnxruntime/lib \
     && cp -L /opt/orv/onnxruntime/capi/libonnxruntime_providers_openvino.so /opt/openvino-runtime/ \
     && cp -L /opt/orv/onnxruntime/capi/libopenvino*.so* /opt/openvino-runtime/ \
     && cp -L /opt/orv/onnxruntime/capi/libtbb*.so* /opt/openvino-runtime/ \
+    # The rest of the OpenVINO runtime lives in a subdir of the wheel (e.g.
+    # libopenvino_onnx_frontend.so.2541, libopenvino_intel_cpu_plugin.so...).
+    # Recursively stage every OpenVINO/TBB lib so nothing is missed at runtime
+    # ("Failed to load shared library ... libopenvino_onnx_frontend.so").
+    && find /opt/orv \( -name 'libopenvino*.so*' -o -name 'libtbb*.so*' \) -exec cp -L {} /opt/openvino-runtime/ \; \
     # the wheel's libonnxruntime SONAME is libonnxruntime.so.1 (see "readelf -d"):
     # the runtime image needs that name for the dynamic loader.
     && ln -sv libonnxruntime.so.${ORT_OV_VERSION} /opt/openvino-runtime/libonnxruntime.so.1 \
@@ -112,6 +117,7 @@ RUN set -eux; \
     ls /opt/openvino-runtime/; \
     test -f /opt/openvino-runtime/libonnxruntime.so.1; \
     test -f /opt/openvino-runtime/libonnxruntime_providers_openvino.so; \
+    test -n "$(ls /opt/openvino-runtime/libopenvino_onnx_frontend.so.* 2>/dev/null)" && echo "frontend lib present"; \
     echo "OpenVINO provider lib present"
 
 # ============================================================================
