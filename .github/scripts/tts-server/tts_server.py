@@ -116,7 +116,11 @@ def synthesize(req: TTSRequest):
     speed = req.speed if req.speed is not None else DEFAULT_SPEED
 
     try:
-        samples, sample_rate = tts.generate(text, sid=sid, speed=speed)
+        # sherpa-onnx >= 1.9: tts.generate() returns a single GeneratedAudio
+        # object (not a (samples, sample_rate) tuple).
+        result = tts.generate(text, sid=sid, speed=speed)
+        samples = result.samples
+        sample_rate = result.sample_rate
     except Exception as exc:
         raise HTTPException(status_code=500, detail="synthesis failed: %s" % exc)
 
@@ -124,7 +128,11 @@ def synthesize(req: TTSRequest):
         raise HTTPException(status_code=500, detail="synthesis returned no audio")
 
     samples = np.asarray(samples)
-    pcm = samples.astype(np.int16) if np.issubdtype(samples.dtype, np.floating) else samples
+    if np.issubdtype(samples.dtype, np.floating):
+        # GeneratedAudio.samples is float32 in [-1, 1]: scale to int16 range.
+        samples = np.clip(samples, -1.0, 1.0)
+        samples = (samples * 32767).astype(np.int16)
+    pcm = samples
 
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wav:
