@@ -1,11 +1,11 @@
 name: docker-image-tts-server-linux-x64
 
 on:
-  # 独立 TTS 服务镜像：仅手动触发，或在打 vtts-1.13.6 tag 时触发。
-  # 使用独立 tag 以免复用 v1.13.6 时连带重跑 OpenVINO ASR 镜像的构建。
+  # 独立 TTS 服务镜像：仅手动触发，或在打 vtts-1.13.7 tag 时触发。
+  # 使用独立 tag 以免复用 v1.13.7 时连带重跑 OpenVINO ASR 镜像的构建。
   push:
     tags:
-      - 'vtts-1.13.6'
+      - 'vtts-1.13.7'
   workflow_dispatch:
 
 concurrency:
@@ -40,7 +40,7 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/sherpa-tts-server:1.13.6
+            ghcr.io/${{ github.repository_owner }}/sherpa-tts-server:1.13.7
             ghcr.io/${{ github.repository_owner }}/sherpa-tts-server:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

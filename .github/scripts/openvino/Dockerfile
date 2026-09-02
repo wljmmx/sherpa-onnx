@@ -10,7 +10,7 @@
 #               network access at runtime.
 #
 # Note on the requested "-DSHERPA_ONNX_ENABLE_OPENVINO=ON":
-#   sherpa-onnx 1.13.6 has no such CMake option. The OpenVINO backend is
+#   sherpa-onnx 1.13.7 has no such CMake option. The OpenVINO backend is
 #   provided by linking sherpa-onnx against the onnxruntime-openvino package
 #   (the official Intel OpenVINO EP build of onnxruntime), and the OpenVINO
 #   runtime itself is downloaded (as part of that wheel) inside the builder.
@@ -137,7 +137,7 @@ RUN apt-get update \
 COPY --from=builder /src/build/install/bin /opt/sherpa/bin
 COPY --from=builder /src/build/install/lib /opt/sherpa/lib
 
-# TTS command alias: sherpa-onnx 1.13.6 installs `sherpa-onnx-offline-tts`
+# TTS command alias: sherpa-onnx 1.13.7 installs `sherpa-onnx-offline-tts`
 # (there is no binary literally named `sherpa-onnx-tts`). Provide the short
 # alias so the compose `voice-tts-*` service can call `sherpa-onnx-tts`.
 RUN set -eux \
@@ -149,7 +149,7 @@ COPY --from=builder /opt/openvino-runtime /opt/sherpa/openvino
 
 LABEL org.opencontainers.image.title="sherpa-onnx (OpenVINO)"
 LABEL org.opencontainers.image.source="https://github.com/wljmmx/sherpa-onnx"
-LABEL org.opencontainers.image.description="sherpa-onnx 1.13.6 built with the OpenVINO Execution Provider (OpenVINO 2025.4.1 runtime bundled). Use --provider=openvino"
+LABEL org.opencontainers.image.description="sherpa-onnx 1.13.7 built with the OpenVINO Execution Provider (OpenVINO 2025.4.1 runtime bundled). Use --provider=openvino"
 
 ENV PATH=/opt/sherpa/bin:$PATH
 WORKDIR /workspace

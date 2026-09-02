@@ -1,9 +1,9 @@
 # sherpa-onnx runtime image (Linux x64)
 #
 # The image is built on GitHub Actions (ubuntu-latest, linux/amd64)
-# and published to GHCR as ghcr.io/<owner>/sherpa-onnx:1.13.6
+# and published to GHCR as ghcr.io/<owner>/sherpa-onnx:1.13.7
 #
-# It provides both the Python API (sherpa-onnx==1.13.6) and the
+# It provides both the Python API (sherpa-onnx==1.13.7) and the
 # core runtime dependencies (ffmpeg, libsndfile) plus the prebuilt
 # onnxruntime binaries shipped inside the pip wheel.
 
@@ -20,8 +20,8 @@ RUN apt-get update \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin to sherpa-onnx 1.13.6
-RUN pip install --no-cache-dir sherpa-onnx==1.13.6
+# Pin to sherpa-onnx 1.13.7
+RUN pip install --no-cache-dir sherpa-onnx==1.13.7
 
 WORKDIR /workspace
 

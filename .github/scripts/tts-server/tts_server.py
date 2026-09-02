@@ -88,7 +88,7 @@ except Exception as exc:  # model not yet mounted / invalid -> fail on startup
     tts = None
     print("TTS model init FAILED: %s" % _startup_error, flush=True)
 
-app = FastAPI(title="sherpa-onnx TTS server", version="1.13.6")
+app = FastAPI(title="sherpa-onnx TTS server", version="1.13.7")
 
 
 class TTSRequest(BaseModel):
